@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoMarket Express | Tienda ecológica</title>
+<style>
+:root{--green:#246b45;--green2:#e8f3eb;--ink:#203128;--muted:#65736a;--line:#dce7df;--cream:#f7faf7;--danger:#a32929}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.5 Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+nav{max-width:1100px;margin:auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:1.25rem;font-weight:800;color:var(--green)}.brand span{color:#8a9c56}
+nav a{color:var(--ink);text-decoration:none;margin-left:18px;font-weight:600}
+main{max-width:1100px;margin:28px auto;padding:0 22px}
+.hero{background:linear-gradient(115deg,#e5f1e7,#f7f4e9);border-radius:20px;padding:34px;margin-bottom:28px}
+.hero h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:0 0 12px;color:#214e35}
+.hero p{max-width:620px;color:#52645a;margin:0 0 18px}
+button{border:0;border-radius:9px;background:var(--green);color:#fff;padding:10px 15px;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(.93)}button.secondary{background:#edf4ef;color:var(--green);border:1px solid var(--line)}
+.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:20px 0}
+input{padding:11px 12px;border:1px solid #bdcfc2;border-radius:9px;font:inherit;min-width:220px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.product{background:white;border:1px solid var(--line);border-radius:15px;padding:17px;display:flex;flex-direction:column;gap:8px}
+.emoji{height:105px;background:var(--green2);border-radius:11px;display:grid;place-items:center;font-size:3.5rem}
+.product h3{margin:5px 0 0}.product p{margin:0;color:var(--muted);font-size:.94rem}.price{font-weight:800;color:var(--green);font-size:1.1rem}
+.product .actions{display:flex;gap:8px;align-items:center;margin-top:auto;flex-wrap:wrap}
+.product input{width:70px;min-width:70px;padding:8px}
+section.panel{margin:30px 0;background:white;border:1px solid var(--line);border-radius:15px;padding:20px}
+.panel h2{margin-top:0}.cart-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid var(--line)}
+.cart-row small{display:block;color:var(--muted)}.cart-total{display:flex;justify-content:space-between;font-size:1.2rem;font-weight:800;margin-top:18px}
+.message{margin-top:10px;padding:10px 12px;border-radius:9px;background:var(--green2);color:var(--green);font-weight:600}
+.message.error{background:#fff0f0;color:var(--danger)}
+.empty{color:var(--muted);padding:12px 0}
+footer{text-align:center;padding:30px;color:var(--muted);font-size:.9rem}
+@media(max-width:600px){nav{align-items:flex-start;flex-direction:column}nav a{margin:0 14px 0 0}.hero{padding:24px}.cart-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+<nav>
+<div class="brand">EcoMarket <span>Express</span></div>
+<div><a href="#catalogo">Catálogo</a><a href="#carrito">Mi carrito (<span id="cart-count">0</span>)</a></div>
+</nav>
+</header>
+<main>
+<section class="hero">
+<h1>Pequeños cambios,<br>un mundo mejor.</h1>
+<p>Encuentra productos prácticos y responsables para cuidar tu hogar y el planeta. Compra de forma sencilla en EcoMarket Express.</p>
+<a href="#catalogo"><button>Explorar productos</button></a>
+</section>
+<section id="catalogo">
+<h2>Catálogo de productos</h2>
+<p>Consulta los productos disponibles y agrégalos a tu carrito.</p>
+<div class="toolbar">
+<input id="search" type="search" placeholder="Buscar producto..." aria-label="Buscar producto">
+<span id="search-status" aria-live="polite">4 productos disponibles</span>
+</div>
+<div class="grid" id="products"></div>
+<div id="catalog-message" aria-live="polite"></div>
+</section>
+<section class="panel" id="carrito">
+<h2>Mi carrito de compras</h2>
+<div id="cart-items"><p class="empty">Tu carrito está vacío. Agrega un producto del catálogo.</p></div>
+<div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
+<div id="cart-message" aria-live="polite"></div>
+</section>
+</main>
+<footer>EcoMarket Express S.A.S. · Prototipo académico para pruebas de software</footer>
+<script>
+const products=[
+{id:1,name:"Jabón ecológico",description:"Jabón de uso diario con ingredientes de origen vegetal.",price:12000,emoji:"🧼"},
+{id:2,name:"Bolsa reutilizable",description:"Bolsa resistente para tus compras cotidianas.",price:8000,emoji:"🛍️"},
+{id:3,name:"Detergente ecológico",description:"Alternativa práctica para la limpieza del hogar.",price:18000,emoji:"🫧"},
+{id:4,name:"Botella reutilizable",description:"Botella para llevar agua y reducir plásticos de un solo uso.",price:25000,emoji:"🥤"}
+];
+let cart={};
+const money=n=>n.toLocaleString("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0});
+function renderProducts(list=products){
+ const el=document.getElementById("products");el.innerHTML="";
+ list.forEach(p=>{
+  const card=document.createElement("article");card.className="product";
+  card.innerHTML=`<div class="emoji" aria-hidden="true">${p.emoji}</div><h3>${p.name}</h3><p>${p.description}</p><div class="price">${money(p.price)}</div><div class="actions"><label>Cantidad <input type="number" min="1" step="1" value="1" id="qty-${p.id}" aria-label="Cantidad de ${p.name}"></label><button type="button" data-add="${p.id}">Agregar</button></div>`;
+  el.appendChild(card);
+ });
+ document.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>addToCart(Number(b.dataset.add))));
+}
+function addToCart(id){
+ const p=products.find(x=>x.id===id),input=document.getElementById(`qty-${id}`),qty=Number(input.value),msg=document.getElementById("catalog-message");
+ if(!Number.isInteger(qty)||qty<=0){msg.className="message error";msg.textContent="Ingresa una cantidad válida mayor que cero.";input.focus();return;}
+ cart[id]=(cart[id]||0)+qty;msg.className="message";msg.textContent=`${p.name} se agregó al carrito (${qty} unidad(es)).`;renderCart();
+}
+function renderCart(){
+ const el=document.getElementById("cart-items");el.innerHTML="";let total=0,count=0;
+ Object.entries(cart).forEach(([id,q])=>{
+  const p=products.find(x=>x.id===Number(id)),subtotal=p.price*q;total+=subtotal;count+=q;
+  const row=document.createElement("div");row.className="cart-row";
+  row.innerHTML=`<div><strong>${p.name}</strong><small>${q} × ${money(p.price)}</small></div><strong>${money(subtotal)}</strong>`;
+  el.appendChild(row);
+ });
+ if(count===0)el.innerHTML='<p class="empty">Tu carrito está vacío. Agrega un producto del catálogo.</p>';
+ document.getElementById("cart-total").textContent=money(total);
+ document.getElementById("cart-count").textContent=count;
+}
+document.getElementById("search").addEventListener("input",e=>{
+ const term=e.target.value.trim().toLocaleLowerCase("es");
+ const filtered=products.filter(p=>p.name.toLocaleLowerCase("es").includes(term)||p.description.toLocaleLowerCase("es").includes(term));
+ renderProducts(filtered);document.getElementById("search-status").textContent=`${filtered.length} producto(s) encontrado(s)`;
+});
+renderProducts();renderCart();
+</script>
+</body>
+</html>
